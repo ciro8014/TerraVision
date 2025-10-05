@@ -1,0 +1,92 @@
+{
+  "_250m_16_days_NDVI": {
+    "AddOffset": 0.0,
+    "Available": true,
+    "DataType": "float32",
+    "Description": "16 day NDVI average",
+    "Dimensions": [
+      "time",
+      "YDim",
+      "XDim"
+    ],
+    "FillValue": -3000,
+    "FillValueAll": [
+      -3000
+    ],
+    "Group": "",
+    "Info": {},
+    "IsQA": false,
+    "Layer": "_250m_16_days_NDVI",
+    "OrigDataType": "int16",
+    "OrigValidMax": 10000,
+    "OrigValidMin": -2000,
+    "QualityLayers": "['_250m_16_days_VI_Quality']",
+    "QualityProductAndVersion": "MOD13Q1.061",
+    "ScaleFactor": 0.0001,
+    "Units": "NDVI",
+    "ValidMax": 1.0,
+    "ValidMin": -0.200000003,
+    "XSize": 4800,
+    "YSize": 4800
+  },
+  "_250m_16_days_pixel_reliability": {
+    "AddOffset": "",
+    "Available": true,
+    "DataType": "int32",
+    "Description": "250m 16 days pixel reliability",
+    "Dimensions": [
+      "time",
+      "YDim",
+      "XDim"
+    ],
+    "FillValue": -1,
+    "FillValueAll": [
+      -1
+    ],
+    "Group": "",
+    "Info": {},
+    "IsQA": true,
+    "Layer": "_250m_16_days_pixel_reliability",
+    "OrigDataType": "int32",
+    "OrigValidMax": 3,
+    "OrigValidMin": 0,
+    "QualityLayers": "",
+    "QualityProductAndVersion": "",
+    "ScaleFactor": "",
+    "Units": "",
+    "ValidMax": 3.0,
+    "ValidMin": 0.0,
+    "XSize": 4800,
+    "YSize": 4800
+  },
+  "_250m_16_days_VI_Quality": {
+    "AddOffset": "",
+    "Available": true,
+    "DataType": "uint16",
+    "Description": "250m 16 days VI Quality",
+    "Dimensions": [
+      "time",
+      "YDim",
+      "XDim"
+    ],
+    "FillValue": 65535,
+    "FillValueAll": [
+      65535
+    ],
+    "Group": "",
+    "Info": {},
+    "IsQA": true,
+    "Layer": "_250m_16_days_VI_Quality",
+    "OrigDataType": "uint16",
+    "OrigValidMax": 65534,
+    "OrigValidMin": 0,
+    "QualityLayers": "",
+    "QualityProductAndVersion": "",
+    "ScaleFactor": "",
+    "Units": "",
+    "ValidMax": 65534.0,
+    "ValidMin": 0.0,
+    "XSize": 4800,
+    "YSize": 4800
+  }
+}

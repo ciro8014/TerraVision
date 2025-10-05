@@ -1,0 +1,62 @@
+{
+  "LST_Day_1km": {
+    "AddOffset": 0.0,
+    "Available": true,
+    "DataType": "float32",
+    "Description": "Day Land Surface Temperature",
+    "Dimensions": [
+      "time",
+      "YDim",
+      "XDim"
+    ],
+    "FillValue": 0,
+    "FillValueAll": [
+      0
+    ],
+    "Group": "",
+    "Info": {},
+    "IsQA": false,
+    "Layer": "LST_Day_1km",
+    "OrigDataType": "uint16",
+    "OrigValidMax": 65535,
+    "OrigValidMin": 7500,
+    "QualityLayers": "['QC_Day']",
+    "QualityProductAndVersion": "MOD11A2.061",
+    "ScaleFactor": 0.02,
+    "Units": "Kelvin",
+    "ValidMax": 1310.699951,
+    "ValidMin": 150.0,
+    "XSize": 1200,
+    "YSize": 1200
+  },
+  "QC_Day": {
+    "AddOffset": "",
+    "Available": true,
+    "DataType": "byte",
+    "Description": "Daytime LST Quality Indicators",
+    "Dimensions": [
+      "time",
+      "YDim",
+      "XDim"
+    ],
+    "FillValue": 0,
+    "FillValueAll": [
+      0
+    ],
+    "Group": "",
+    "Info": {},
+    "IsQA": true,
+    "Layer": "QC_Day",
+    "OrigDataType": "byte",
+    "OrigValidMax": 255,
+    "OrigValidMin": 0,
+    "QualityLayers": "",
+    "QualityProductAndVersion": "",
+    "ScaleFactor": "",
+    "Units": "Bit Field",
+    "ValidMax": 255.0,
+    "ValidMin": 0.0,
+    "XSize": 1200,
+    "YSize": 1200
+  }
+}

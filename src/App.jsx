@@ -7,6 +7,7 @@ import Predictions from './pages/Predictions';
 import Sensors from './pages/Sensors';
 import Impact from './pages/Impact';
 import Data from './pages/Data';
+import Solutions from './pages/Solutions';
 
 function App() {
   return (
@@ -20,6 +21,7 @@ function App() {
             <Route path="/predictions" element={<Predictions />} />
             <Route path="/sensors" element={<Sensors />} />
             <Route path="/impact" element={<Impact />} />
+            <Route path="/solutions" element={<Solutions />} />
             <Route path="/data" element={<Data />} />
           </Routes>
         </main>

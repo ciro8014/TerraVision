@@ -1,0 +1,29 @@
+{
+  "product": "MOD10A1.061",
+  "data_layers": [
+    {
+      "name": "NDSI_Snow_Cover",
+      "dtype": "byte",
+      "scale_factor": "",
+      "add_offset": "",
+      "fill_value": 255,
+      "valid_range": [
+        0,
+        100
+      ]
+    }
+  ],
+  "qa_layers": [
+    {
+      "name": "NDSI_Snow_Cover_Basic_QA",
+      "dtype": "byte",
+      "scale_factor": "",
+      "add_offset": "",
+      "fill_value": 255,
+      "valid_range": [
+        0,
+        4
+      ]
+    }
+  ]
+}

@@ -3,13 +3,13 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Responsi
 function PredictionChart({ data }) {
   return (
     <div className="chart-container">
-      <h3 className="chart-title">EVI Predictions 2026-2030 with Confidence Intervals</h3>
+      <h3 className="chart-title">NDVI Predictions with Confidence Intervals</h3>
       <ResponsiveContainer width="100%" height={400}>
         <AreaChart data={data} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
           <defs>
             <linearGradient id="colorConfidence" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3}/>
-              <stop offset="95%" stopColor="#3b82f6" stopOpacity={0.1}/>
+              <stop offset="5%" stopColor="#10b981" stopOpacity={0.3}/>
+              <stop offset="95%" stopColor="#10b981" stopOpacity={0.1}/>
             </linearGradient>
           </defs>
           <CartesianGrid strokeDasharray="3 3" stroke="#2a2a3a" />
@@ -17,11 +17,16 @@ function PredictionChart({ data }) {
             dataKey="date" 
             stroke="#a0a0b0"
             tick={{ fill: '#a0a0b0' }}
+            tickFormatter={(value) => {
+              const date = new Date(value);
+              return `${date.getMonth() + 1}/${date.getFullYear()}`;
+            }}
           />
           <YAxis 
             stroke="#a0a0b0"
             tick={{ fill: '#a0a0b0' }}
             domain={[0, 1]}
+            label={{ value: 'NDVI', angle: -90, position: 'insideLeft', fill: '#a0a0b0' }}
           />
           <Tooltip 
             contentStyle={{ 
@@ -30,37 +35,50 @@ function PredictionChart({ data }) {
               borderRadius: '8px',
               color: '#fff'
             }}
+            labelFormatter={(label) => `Date: ${label}`}
+            formatter={(value) => value.toFixed(3)}
           />
           <Legend wrapperStyle={{ color: '#a0a0b0' }} />
           
           {/* Intervalo de confianza (área sombreada) */}
           <Area
             type="monotone"
-            dataKey="evi_upper"
+            dataKey="ndvi_upper"
             stroke="none"
             fill="url(#colorConfidence)"
-            name="Intervalo Superior"
+            name="Upper Bound"
           />
           <Area
             type="monotone"
-            dataKey="evi_lower"
+            dataKey="ndvi_lower"
             stroke="none"
             fill="url(#colorConfidence)"
-            name="Intervalo Inferior"
+            name="Lower Bound"
           />
           
           {/* Línea de predicción principal */}
           <Line 
             type="monotone" 
-            dataKey="evi_pred" 
+            dataKey="ndvi_pred" 
             stroke="#10b981" 
             strokeWidth={3}
-            dot={{ fill: '#10b981', r: 5 }}
+            dot={false}
             activeDot={{ r: 7 }}
-            name="Predicción EVI"
+            name="NDVI Prediction"
           />
         </AreaChart>
       </ResponsiveContainer>
+      
+      <div className="chart-legend-info">
+        <p>
+          <span className="legend-dot" style={{ backgroundColor: '#10b981' }}></span>
+          Predicted NDVI from ConvLSTM model (16-day composites)
+        </p>
+        <p>
+          <span className="legend-area" style={{ backgroundColor: '#10b981', opacity: 0.2 }}></span>
+          95% confidence interval based on model uncertainty
+        </p>
+      </div>
     </div>
   );
 }

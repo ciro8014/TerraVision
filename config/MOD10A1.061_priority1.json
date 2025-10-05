@@ -1,0 +1,62 @@
+{
+  "NDSI_Snow_Cover": {
+    "AddOffset": "",
+    "Available": true,
+    "DataType": "byte",
+    "Description": "",
+    "Dimensions": [
+      "time",
+      "YDim",
+      "XDim"
+    ],
+    "FillValue": 255,
+    "FillValueAll": [
+      255
+    ],
+    "Group": "",
+    "Info": {},
+    "IsQA": false,
+    "Layer": "NDSI_Snow_Cover",
+    "OrigDataType": "byte",
+    "OrigValidMax": 100,
+    "OrigValidMin": 0,
+    "QualityLayers": "['NDSI_Snow_Cover_Basic_QA','NDSI_Snow_Cover_Algorithm_Flags_QA']",
+    "QualityProductAndVersion": "MOD10A1.061",
+    "ScaleFactor": "",
+    "Units": "%",
+    "ValidMax": 100.0,
+    "ValidMin": 0.0,
+    "XSize": 2400,
+    "YSize": 2400
+  },
+  "NDSI_Snow_Cover_Basic_QA": {
+    "AddOffset": "",
+    "Available": true,
+    "DataType": "byte",
+    "Description": "",
+    "Dimensions": [
+      "time",
+      "YDim",
+      "XDim"
+    ],
+    "FillValue": 255,
+    "FillValueAll": [
+      255
+    ],
+    "Group": "",
+    "Info": {},
+    "IsQA": true,
+    "Layer": "NDSI_Snow_Cover_Basic_QA",
+    "OrigDataType": "byte",
+    "OrigValidMax": 4,
+    "OrigValidMin": 0,
+    "QualityLayers": "",
+    "QualityProductAndVersion": "",
+    "ScaleFactor": "",
+    "Units": "unitless",
+    "ValidMax": 4.0,
+    "ValidMin": 0.0,
+    "XSize": 2400,
+    "YSize": 2400
+  }
+}

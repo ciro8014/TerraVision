@@ -1,0 +1,18 @@
+{
+  "product": "MOD13Q1.061",
+  "layers": [
+    {
+      "id": "_250m_16_days_NDVI",
+      "title": "16 day NDVI average",
+      "dataType": "float32",
+      "validRange": [
+        -0.200000003,
+        1.0
+      ],
+      "units": "NDVI",
+      "colormap": "RdYlGn",
+      "opacity": 0.7,
+      "visible": true
+    }
+  ]
+}

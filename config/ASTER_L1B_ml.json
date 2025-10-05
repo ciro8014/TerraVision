@@ -1,0 +1,92 @@
+{
+  "product": "ASTER_L1B",
+  "description": "ASTER Level-1B Registered Radiance at the Sensor - VNIR, SWIR, TIR subsystems",
+  "spatial_resolution": {
+    "vnir": "15m",
+    "swir": "30m",
+    "tir": "90m"
+  },
+  "data_layers": [
+    {
+      "subsystem": "VNIR",
+      "name": "ImageData1",
+      "band_number": 1,
+      "spectral_range": "0.52-0.60",
+      "wavelength_description": "Green",
+      "dtype": "uint8",
+      "resolution": "15m",
+      "purpose": "True color composites, land/crop classification"
+    },
+    {
+      "subsystem": "VNIR",
+      "name": "ImageData2",
+      "band_number": 2,
+      "spectral_range": "0.63-0.69",
+      "wavelength_description": "Red",
+      "dtype": "uint8",
+      "resolution": "15m",
+      "purpose": "NDVI calculation (Red band), essential for vegetation analysis",
+      "ndvi_component": "RED"
+    },
+    {
+      "subsystem": "VNIR",
+      "name": "ImageData3N",
+      "band_number": "3N",
+      "spectral_range": "0.78-0.86",
+      "wavelength_description": "Near Infrared (NIR) - Nadir",
+      "dtype": "uint8",
+      "resolution": "15m",
+      "purpose": "NDVI calculation (NIR band), vegetation vigor, high-res parcel mapping",
+      "ndvi_component": "NIR"
+    },
+    {
+      "subsystem": "SWIR",
+      "name": "ImageData4-9",
+      "band_range": "4-9",
+      "spectral_range": "1.60-2.43",
+      "wavelength_description": "Shortwave Infrared",
+      "dtype": "uint8",
+      "resolution": "30m",
+      "purpose": "Soil moisture, water stress detection, mineral mapping"
+    },
+    {
+      "subsystem": "TIR",
+      "name": "ImageData10-14",
+      "band_range": "10-14",
+      "spectral_range": "8.125-11.65",
+      "wavelength_description": "Thermal Infrared",
+      "dtype": "uint16",
+      "resolution": "90m",
+      "purpose": "Land Surface Temperature (LST), frost detection (higher resolution than MODIS)"
+    }
+  ],
+  "ndvi_calculation": {
+    "formula": "(NIR - Red) / (NIR + Red)",
+    "bands_required": ["ImageData2", "ImageData3N"],
+    "output_resolution": "15m",
+    "advantages": "High-resolution NDVI for individual parcel identification in Valle Sagrado"
+  },
+  "processing_level": "L1B",
+  "calibration": {
+    "radiometric": "Applied",
+    "geometric": "Applied (UTM projection)",
+    "resampling_method": "Cubic Convolution (CC)"
+  },
+  "saac_applications": {
+    "parcel_mapping": {
+      "bands": ["ImageData2", "ImageData3N"],
+      "resolution": "15m",
+      "capability": "Individual agricultural parcels in Valle Sagrado"
+    },
+    "water_stress": {
+      "bands": ["ImageData4-9"],
+      "resolution": "30m",
+      "capability": "Early drought detection via SWIR moisture content"
+    },
+    "frost_alerts": {
+      "bands": ["ImageData10-14"],
+      "resolution": "90m",
+      "capability": "Localized frost detection (better than MODIS 1km)"
+    }
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "product": "MOD11A2.061",
+  "layers": [
+    {
+      "id": "LST_Day_1km",
+      "title": "Day Land Surface Temperature",
+      "dataType": "float32",
+      "validRange": [
+        150.0,
+        1310.699951
+      ],
+      "units": "Kelvin",
+      "colormap": "RdYlBu_r",
+      "opacity": 0.7,
+      "visible": true
+    }
+  ]
+}
