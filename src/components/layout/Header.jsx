@@ -18,12 +18,10 @@ function Header() {
   const navLinks = [
     { to: '/', label: 'Home' },
     { to: '/dashboard', label: 'Dashboard' },
-    { to: '/solutions', label: 'Solutions' },
     { to: '/predictions', label: 'Predictions' },
     { to: '/sensors', label: 'Terra Sensors' },
     { to: '/impact', label: 'Impact' },
     { to: '/data', label: 'Data' },
-  
   ];
 
   return (

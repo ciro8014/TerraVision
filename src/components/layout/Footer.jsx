@@ -19,7 +19,7 @@ function Footer() {
             </Link>
             <p className="footer-tagline">
               Multi-sensor Earth observation system integrating 25 years of NASA Terra satellite data 
-              for environmental monitoring and climate prediction in Cusco, Peru.
+              for environmental monitoring and climate prediction worldwide.
             </p>
             <div className="footer-stats">
               <div className="footer-stat-item">
@@ -45,6 +45,7 @@ function Footer() {
               <li><Link to="/dashboard">Dashboard</Link></li>
               <li><Link to="/predictions">Predictions</Link></li>
               <li><Link to="/sensors">Terra Sensors</Link></li>
+              <li><Link to="/impact">Impact</Link></li>
               <li><Link to="/data">Open Data</Link></li>
             </ul>
           </div>

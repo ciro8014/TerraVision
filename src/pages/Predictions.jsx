@@ -1,390 +1,108 @@
-import { useState, useEffect } from 'react';
-import { Calendar, TrendingUp, Brain, Download, Database, Cpu, CheckCircle, Layers, Thermometer, Satellite } from 'lucide-react';
+import { Calendar, TrendingUp, Brain, Download, CheckCircle, Satellite, Activity } from 'lucide-react';
 import PredictionChart from '../components/charts/PredictionChart';
 import ModelComparison from '../components/charts/ModelComparison';
-
-// Import configuration for all sensors for ML
-import MOD13Q1_ML_CONFIG from '../../config/MOD13Q1.061_ml.json';
-import MOD11A2_ML_CONFIG from '../../config/MOD11A2.061_ml.json';
-import ASTER_L1B_ML_CONFIG from '../../config/ASTER_L1B_ml.json';
+import { predictions } from '../lib/mockData';
 
 function Predictions() {
-  // State to simulate multi-sensor ML pipeline
-  const [pipelineStatus, setPipelineStatus] = useState({
-    acquisition: { 
-      status: 'completed', 
-      progress: 100, 
-      message: '3 products downloaded',
-      sensors: ['MOD13Q1', 'MOD11A2', 'ASTER L1B']
-    },
-    preprocessing: { 
-      status: 'completed', 
-      progress: 100, 
-      message: 'Multi-resolution processed',
-      details: '15m→250m→1km harmonized'
-    },
-    gapDetection: { 
-      status: 'completed', 
-      progress: 100, 
-      message: 'Quality check: 82% (multi-sensor)',
-      modis_quality: '75%',
-      aster_quality: '89%'
-    },
-    fusion: {
-      status: 'completed',
-      progress: 100,
-      message: 'Spatial fusion completed',
-      method: 'ASTER 15m → MOD13Q1 250m downscaling'
-    },
-    mlProcessing: { 
-      status: 'running', 
-      progress: 68, 
-      message: 'ConvLSTM multi-input forecasting...',
-      models: ['U-Net Gap Fill', 'Spatial Fusion', 'ConvLSTM Forecast']
-    },
-    storage: { 
-      status: 'pending', 
-      progress: 0, 
-      message: 'Waiting for multi-layer predictions'
-    }
-  });
+  const avgPrediction = predictions.reduce((sum, p) => sum + p.evi_pred, 0) / predictions.length;
+  const trend = avgPrediction > 0.5 ? 'Favorable' : 'Monitor';
 
-  // Active sensors configuration
-  const [sensorConfig] = useState({
-    modis_ndvi: {
-      product: MOD13Q1_ML_CONFIG.product,
+  const pipelinePhases = [
+    { phase: 'PHASE 1: Multi-Sensor Acquisition', status: 'completed', detail: '3 products downloaded' },
+    { phase: 'PHASE 2: Resolution Harmonization', status: 'completed', detail: '15m→250m→1km harmonized' },
+    { phase: 'PHASE 3: Multi-Source Quality Check', status: 'completed', detail: 'Quality check: 82% (multi-sensor)' },
+    { phase: 'PHASE 3.5: Spatial Fusion', status: 'completed', detail: 'Spatial fusion completed' },
+    { phase: 'PHASE 4: ML Multi-Input Processing', status: 'completed', detail: 'Multi-sensor forecast completed' },
+    { phase: 'PHASE 5: Spatiotemporal Storage', status: 'completed', detail: 'Data stored in PostGIS + TimescaleDB' }
+  ];
+
+  const sensorConfig = [
+    {
+      name: 'MOD13Q1.061',
+      title: 'Temporal NDVI Baseline',
+      icon: '🌿',
       resolution: '250m',
       temporal: '16 days',
-      layers: MOD13Q1_ML_CONFIG.data_layers[0],
-      qa: MOD13Q1_ML_CONFIG.qa_layers,
+      layer: '_250m_16_days_NDVI',
+      scale: '0.0001',
+      qa: '2 layers',
       role: 'Temporal NDVI baseline (2000-2025)',
-      weight: 0.5
+      weight: '50% weight'
     },
-    modis_lst: {
-      product: MOD11A2_ML_CONFIG.product,
+    {
+      name: 'MOD11A2.061',
+      title: 'Land Surface Temperature',
+      icon: '🌡',
       resolution: '1km',
       temporal: '8 days',
-      layer: MOD11A2_ML_CONFIG.data_layers[0],
-      qa: MOD11A2_ML_CONFIG.qa_layers[0],
+      layer: 'LST_Day_1km',
+      scale: '0.02 K',
       role: 'Nighttime frost alerts',
-      weight: 0.25
+      weight: '25% weight'
     },
-    aster_vnir: {
-      product: ASTER_L1B_ML_CONFIG.product,
+    {
+      name: 'ASTER L1B VNIR',
+      title: 'Individual Parcels',
+      icon: '📡',
       resolution: '15m',
-      temporal: 'On-demand',
-      bands: ASTER_L1B_ML_CONFIG.data_layers.filter(l => l.subsystem === 'VNIR'),
-      ndvi_calc: ASTER_L1B_ML_CONFIG.ndvi_calculation,
+      bands: '2, 3N',
+      formula: '(NIR - Red) / (NIR + Red)',
+      subsystem: 'VNIR (Bands 1, 2, 3N)',
       role: 'Individual parcels + High-resolution NDVI',
-      weight: 0.15
+      weight: '15% weight'
     },
-    aster_swir: {
-      product: 'ASTER L1B SWIR',
+    {
+      name: 'ASTER L1B SWIR',
+      title: 'Water Stress',
+      icon: '💧',
       resolution: '30m',
-      bands: ASTER_L1B_ML_CONFIG.data_layers.find(l => l.subsystem === 'SWIR'),
+      bands: '4-9',
+      range: '1.60-2.43 µm',
       role: 'Water stress / soil moisture',
-      weight: 0.10
+      weight: '10% weight'
     }
-  });
+  ];
 
-  const [predictions, setPredictions] = useState([]);
-  const [modelMetrics] = useState({
-    gapFillingAccuracy: 0.94,
-    spatialFusionR2: 0.91,
-    forecastR2: 0.87,
-    multiSensorCorrelation: 0.93,
-    latency: { 
-      gapFilling: 5.2, 
-      spatialFusion: 8.5,
-      forecast: 12.3 
+  const mlModels = [
+    {
+      name: 'Model 1: U-Net Gap Filling',
+      input: 'MOD13Q1 NDVI + pixel_reliability mask',
+      output: 'Gap-free NDVI',
+      accuracy: '94.0%',
+      latency: '5.2s'
+    },
+    {
+      name: 'Model 2: Spatial Fusion',
+      input: 'ASTER 15m → MOD13Q1 250m',
+      method: 'Deep Learning downscaling',
+      r2: '0.91',
+      latency: '8.5s'
+    },
+    {
+      name: 'Model 3: ConvLSTM Forecast',
+      input: 'NDVI + LST + SWIR (6 frames)',
+      output: '+16 days prediction',
+      r2: '0.87',
+      latency: '12.3s'
     }
-  });
+  ];
 
-  useEffect(() => {
-    const loadPredictions = async () => {
-      setTimeout(() => {
-        const mockPredictions = generateMultiSensorPredictions();
-        setPredictions(mockPredictions);
-        
-        setPipelineStatus(prev => ({
-          ...prev,
-          mlProcessing: { 
-            status: 'completed', 
-            progress: 100, 
-            message: 'Multi-sensor forecast completed',
-            models: ['U-Net ✓', 'Spatial Fusion ✓', 'ConvLSTM ✓']
-          },
-          storage: { 
-            status: 'completed', 
-            progress: 100, 
-            message: 'Data stored in PostGIS + TimescaleDB'
-          }
-        }));
-      }, 2500);
-    };
-
-    loadPredictions();
-  }, []);
-
-  const generateMultiSensorPredictions = () => {
-    const baseDate = new Date('2026-01-01');
-    const predictions = [];
-    
-    for (let i = 0; i < 90; i++) {
-      const date = new Date(baseDate);
-      date.setDate(date.getDate() + (i * 16));
-      
-      const month = date.getMonth();
-      const seasonalFactor = Math.sin((month / 12) * Math.PI * 2) * 0.15 + 0.65;
-      const frostRisk = (month >= 4 && month <= 7) ? -0.08 : 0;
-      const noise = (Math.random() - 0.5) * 0.04;
-      
-      predictions.push({
-        date: date.toISOString().split('T')[0],
-        year: date.getFullYear(),
-        month: date.getMonth() + 1,
-        ndvi_pred: Math.max(0.25, Math.min(0.95, seasonalFactor + frostRisk + noise)),
-        ndvi_lower: Math.max(0.15, seasonalFactor + frostRisk + noise - 0.12),
-        ndvi_upper: Math.min(1.0, seasonalFactor + frostRisk + noise + 0.12),
-        modis_ndvi: seasonalFactor + noise * 0.8,
-        aster_ndvi: seasonalFactor + noise * 1.2,
-        lst_influence: frostRisk,
-        swir_moisture: 0.5 + Math.sin((month / 12) * Math.PI * 2) * 0.3,
-        quality: Math.random() > 0.12 ? 'high' : 'medium',
-        confidence: 0.82 + Math.random() * 0.13,
-        frost_risk: (month >= 4 && month <= 7) ? 'high' : 'low',
-        effective_resolution: '15m-250m fusion'
-      });
-    }
-    
-    return predictions;
-  };
-
-  const upcomingPredictions = predictions.slice(0, 6);
-  const avgNDVI = predictions.length > 0 
-    ? predictions.reduce((sum, p) => sum + p.ndvi_pred, 0) / predictions.length 
-    : 0;
-  const trend = avgNDVI > 0.6 ? 'Favorable' : avgNDVI > 0.4 ? 'Moderate' : 'Alert';
-
-  const renderMultiSensorPipeline = () => {
-    const phases = [
-      { key: 'acquisition', label: 'PHASE 1: Multi-Sensor Acquisition', icon: Satellite },
-      { key: 'preprocessing', label: 'PHASE 2: Resolution Harmonization', icon: Layers },
-      { key: 'gapDetection', label: 'PHASE 3: Multi-Source Quality Check', icon: CheckCircle },
-      { key: 'fusion', label: 'PHASE 3.5: Spatial Fusion', icon: Cpu },
-      { key: 'mlProcessing', label: 'PHASE 4: ML Multi-Input Processing', icon: Brain },
-      { key: 'storage', label: 'PHASE 5: Spatiotemporal Storage', icon: Database }
-    ];
-
-    return (
-      <div className="pipeline-status">
-        <h3 className="section-title-small">Multi-Sensor ML Pipeline</h3>
-        <div className="pipeline-phases">
-          {phases.map(phase => {
-            const status = pipelineStatus[phase.key];
-            const Icon = phase.icon;
-            
-            return (
-              <div key={phase.key} className={`pipeline-phase ${status.status}`}>
-                <div className="phase-header">
-                  <Icon size={20} />
-                  <span className="phase-label">{phase.label}</span>
-                  <span className={`phase-status status-${status.status}`}>
-                    {status.status}
-                  </span>
-                </div>
-                <div className="phase-progress">
-                  <div 
-                    className="phase-progress-bar" 
-                    style={{ width: `${status.progress}%` }}
-                  />
-                </div>
-                <p className="phase-message">{status.message}</p>
-                {status.details && (
-                  <p className="phase-detail">{status.details}</p>
-                )}
-              </div>
-            );
-          })}
-        </div>
-      </div>
-    );
-  };
-
-  const renderSensorConfiguration = () => {
-    return (
-      <div className="layer-config">
-        <h3 className="section-title-small">Multi-Sensor Configuration for ML</h3>
-        <div className="sensor-architecture">
-          
-          <div className="sensor-block modis-ndvi">
-            <div className="sensor-header">
-              <Satellite size={24} />
-              <h4>🌿 MOD13Q1.061 - Temporal NDVI Baseline</h4>
-            </div>
-            <div className="sensor-specs">
-              <div className="spec-row">
-                <span className="spec-label">Resolution:</span>
-                <span className="spec-value">{sensorConfig.modis_ndvi.resolution}</span>
-              </div>
-              <div className="spec-row">
-                <span className="spec-label">Temporal:</span>
-                <span className="spec-value">{sensorConfig.modis_ndvi.temporal}</span>
-              </div>
-              <div className="spec-row">
-                <span className="spec-label">Main Layer:</span>
-                <span className="spec-value">{sensorConfig.modis_ndvi.layers.name}</span>
-              </div>
-              <div className="spec-row">
-                <span className="spec-label">Scale Factor:</span>
-                <span className="spec-value">{sensorConfig.modis_ndvi.layers.scale_factor}</span>
-              </div>
-              <div className="spec-row">
-                <span className="spec-label">QA Layers:</span>
-                <span className="spec-value">{sensorConfig.modis_ndvi.qa.length} layers</span>
-              </div>
-            </div>
-            <div className="sensor-role">
-              <strong>Role:</strong> {sensorConfig.modis_ndvi.role}
-              <div className="weight-bar">
-                <div className="weight-fill" style={{ width: `${sensorConfig.modis_ndvi.weight * 100}%` }}></div>
-                <span className="weight-label">{(sensorConfig.modis_ndvi.weight * 100).toFixed(0)}% weight</span>
-              </div>
-            </div>
-          </div>
-
-          <div className="sensor-block modis-lst">
-            <div className="sensor-header">
-              <Thermometer size={24} />
-              <h4>🌡️ MOD11A2.061 - Land Surface Temperature</h4>
-            </div>
-            <div className="sensor-specs">
-              <div className="spec-row">
-                <span className="spec-label">Resolution:</span>
-                <span className="spec-value">{sensorConfig.modis_lst.resolution}</span>
-              </div>
-              <div className="spec-row">
-                <span className="spec-label">Temporal:</span>
-                <span className="spec-value">{sensorConfig.modis_lst.temporal}</span>
-              </div>
-              <div className="spec-row">
-                <span className="spec-label">Layer:</span>
-                <span className="spec-value">{sensorConfig.modis_lst.layer.name}</span>
-              </div>
-              <div className="spec-row">
-                <span className="spec-label">Scale Factor:</span>
-                <span className="spec-value">{sensorConfig.modis_lst.layer.scale_factor} K</span>
-              </div>
-            </div>
-            <div className="sensor-role">
-              <strong>Role:</strong> {sensorConfig.modis_lst.role}
-              <div className="weight-bar">
-                <div className="weight-fill lst" style={{ width: `${sensorConfig.modis_lst.weight * 100}%` }}></div>
-                <span className="weight-label">{(sensorConfig.modis_lst.weight * 100).toFixed(0)}% weight</span>
-              </div>
-            </div>
-          </div>
-
-          <div className="sensor-block aster-vnir">
-            <div className="sensor-header">
-              <Layers size={24} />
-              <h4>📡 ASTER L1B VNIR - Individual Parcels</h4>
-            </div>
-            <div className="sensor-specs">
-              <div className="spec-row">
-                <span className="spec-label">Resolution:</span>
-                <span className="spec-value highlight">{sensorConfig.aster_vnir.resolution}</span>
-              </div>
-              <div className="spec-row">
-                <span className="spec-label">NDVI Bands:</span>
-                <span className="spec-value">
-                  {sensorConfig.aster_vnir.bands.filter(b => b.ndvi_component).map(b => b.band_number).join(', ')}
-                </span>
-              </div>
-              <div className="spec-row">
-                <span className="spec-label">Formula:</span>
-                <span className="spec-value formula">{sensorConfig.aster_vnir.ndvi_calc.formula}</span>
-              </div>
-              <div className="spec-row">
-                <span className="spec-label">Subsystem:</span>
-                <span className="spec-value">VNIR (Bands 1, 2, 3N)</span>
-              </div>
-            </div>
-            <div className="sensor-role">
-              <strong>Role:</strong> {sensorConfig.aster_vnir.role}
-              <div className="weight-bar">
-                <div className="weight-fill aster" style={{ width: `${sensorConfig.aster_vnir.weight * 100}%` }}></div>
-                <span className="weight-label">{(sensorConfig.aster_vnir.weight * 100).toFixed(0)}% weight</span>
-              </div>
-            </div>
-          </div>
-
-          <div className="sensor-block aster-swir">
-            <div className="sensor-header">
-              <Database size={24} />
-              <h4>💧 ASTER L1B SWIR - Water Stress</h4>
-            </div>
-            <div className="sensor-specs">
-              <div className="spec-row">
-                <span className="spec-label">Resolution:</span>
-                <span className="spec-value">{sensorConfig.aster_swir.resolution}</span>
-              </div>
-              <div className="spec-row">
-                <span className="spec-label">Bands:</span>
-                <span className="spec-value">{sensorConfig.aster_swir.bands.band_range}</span>
-              </div>
-              <div className="spec-row">
-                <span className="spec-label">Spectral Range:</span>
-                <span className="spec-value">{sensorConfig.aster_swir.bands.spectral_range} µm</span>
-              </div>
-            </div>
-            <div className="sensor-role">
-              <strong>Role:</strong> {sensorConfig.aster_swir.role}
-              <div className="weight-bar">
-                <div className="weight-fill swir" style={{ width: `${sensorConfig.aster_swir.weight * 100}%` }}></div>
-                <span className="weight-label">{(sensorConfig.aster_swir.weight * 100).toFixed(0)}% weight</span>
-              </div>
-            </div>
-          </div>
-
-        </div>
-
-        <div className="ml-models-section">
-          <h4>🤖 Multi-Sensor ML Architecture</h4>
-          <div className="ml-models-grid">
-            <div className="ml-model-card">
-              <h5>Model 1: U-Net Gap Filling</h5>
-              <p><strong>Input:</strong> MOD13Q1 NDVI + pixel_reliability mask</p>
-              <p><strong>Output:</strong> Gap-free NDVI</p>
-              <p><strong>Accuracy:</strong> {(modelMetrics.gapFillingAccuracy * 100).toFixed(1)}%</p>
-              <p><strong>Latency:</strong> {modelMetrics.latency.gapFilling}s</p>
-            </div>
-            <div className="ml-model-card">
-              <h5>Model 2: Spatial Fusion</h5>
-              <p><strong>Input:</strong> ASTER 15m → MOD13Q1 250m</p>
-              <p><strong>Method:</strong> Deep Learning downscaling</p>
-              <p><strong>R²:</strong> {modelMetrics.spatialFusionR2.toFixed(2)}</p>
-              <p><strong>Latency:</strong> {modelMetrics.latency.spatialFusion}s</p>
-            </div>
-            <div className="ml-model-card">
-              <h5>Model 3: ConvLSTM Forecast</h5>
-              <p><strong>Input:</strong> NDVI + LST + SWIR (6 frames)</p>
-              <p><strong>Output:</strong> +16 days prediction</p>
-              <p><strong>R²:</strong> {modelMetrics.forecastR2.toFixed(2)}</p>
-              <p><strong>Latency:</strong> {modelMetrics.latency.forecast}s</p>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  };
+  const nextPredictions = [
+    { date: '2026-01-01', ndvi: 0.574, confidence: '[0.454, 0.694]', frost: 'low', swir: 0.35, quality: 'medium', conf: '92.2%' },
+    { date: '2026-01-17', ndvi: 0.653, confidence: '[0.533, 0.773]', frost: 'low', swir: 0.50, quality: 'high', conf: '90.4%' },
+    { date: '2026-02-02', ndvi: 0.709, confidence: '[0.589, 0.829]', frost: 'low', swir: 0.65, quality: 'high', conf: '84.1%' },
+    { date: '2026-02-18', ndvi: 0.732, confidence: '[0.612, 0.852]', frost: 'low', swir: 0.65, quality: 'medium', conf: '92.2%' },
+    { date: '2026-03-06', ndvi: 0.788, confidence: '[0.668, 0.908]', frost: 'low', swir: 0.76, quality: 'high', conf: '90.8%' },
+    { date: '2026-03-22', ndvi: 0.771, confidence: '[0.651, 0.891]', frost: 'low', swir: 0.76, quality: 'high', conf: '87.0%' }
+  ];
 
   return (
     <div className="predictions-page">
       <div className="container">
+        {/* Header */}
         <div className="predictions-header">
           <div>
-            <h1 className="page-title">Multi-Sensor NDVI Predictions 2026-2030</h1>
+            <h1 className="page-title">Multi-Sensor ML Pipeline</h1>
             <p className="predictions-subtitle">
               MOD13Q1 (250m) + ASTER L1B (15m) + MOD11A2 LST | ConvLSTM Multi-Input Forecasting
             </p>
@@ -395,29 +113,122 @@ function Predictions() {
           </button>
         </div>
 
-        {renderMultiSensorPipeline()}
-        {renderSensorConfiguration()}
+        {/* Pipeline Phases */}
+        <div className="pipeline-section">
+          <h2 className="section-title-small">Multi-Sensor ML Pipeline</h2>
+          <div className="pipeline-phases">
+            {pipelinePhases.map((phase, idx) => (
+              <div key={idx} className="pipeline-phase">
+                <div className="phase-header">
+                  <CheckCircle size={20} color="#10b981" />
+                  <span className="phase-status">{phase.status}</span>
+                </div>
+                <div className="phase-title">{phase.phase}</div>
+                <div className="phase-detail">{phase.detail}</div>
+              </div>
+            ))}
+          </div>
+        </div>
 
-        <div className="prediction-summary">
-          <div className="summary-card">
-            <div className="summary-icon">
-              <Calendar size={32} />
-            </div>
-            <div className="summary-content">
-              <h3>Forecast Period</h3>
-              <p className="summary-value">{predictions.length} composites</p>
-              <span className="summary-label">~{Math.floor(predictions.length * 16 / 365)} years | Multi-sensor fusion</span>
+        {/* Sensor Configuration */}
+        <div className="sensor-config-section">
+          <h2 className="section-title-small">Multi-Sensor Configuration for ML</h2>
+          <div className="sensor-grid">
+            {sensorConfig.map((sensor, idx) => (
+              <div key={idx} className="sensor-config-card">
+                <div className="sensor-header">
+                  <span className="sensor-icon">{sensor.icon}</span>
+                  <div>
+                    <h3>{sensor.name}</h3>
+                    <p>{sensor.title}</p>
+                  </div>
+                </div>
+                <div className="sensor-specs">
+                  <div className="spec-row">
+                    <strong>RESOLUTION:</strong> {sensor.resolution}
+                  </div>
+                  <div className="spec-row">
+                    <strong>TEMPORAL:</strong> {sensor.temporal}
+                  </div>
+                  {sensor.layer && (
+                    <div className="spec-row">
+                      <strong>MAIN LAYER:</strong> {sensor.layer}
+                    </div>
+                  )}
+                  {sensor.bands && (
+                    <div className="spec-row">
+                      <strong>BANDS:</strong> {sensor.bands}
+                    </div>
+                  )}
+                  {sensor.scale && (
+                    <div className="spec-row">
+                      <strong>SCALE FACTOR:</strong> {sensor.scale}
+                    </div>
+                  )}
+                </div>
+                <div className="sensor-role">
+                  <strong>Role:</strong> {sensor.role}
+                </div>
+                <div className="sensor-weight">{sensor.weight}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* ML Architecture */}
+        <div className="ml-architecture-section">
+          <h2 className="section-title-small">🤖 Multi-Sensor ML Architecture</h2>
+          <div className="ml-models-grid">
+            {mlModels.map((model, idx) => (
+              <div key={idx} className="ml-model-card">
+                <h3>{model.name}</h3>
+                <div className="model-detail">
+                  <strong>Input:</strong> {model.input}
+                </div>
+                <div className="model-detail">
+                  <strong>Output:</strong> {model.output}
+                </div>
+                {model.method && (
+                  <div className="model-detail">
+                    <strong>Method:</strong> {model.method}
+                  </div>
+                )}
+                {model.accuracy && (
+                  <div className="model-metric">
+                    <strong>Accuracy:</strong> <span className="metric-value">{model.accuracy}</span>
+                  </div>
+                )}
+                {model.r2 && (
+                  <div className="model-metric">
+                    <strong>R²:</strong> <span className="metric-value">{model.r2}</span>
+                  </div>
+                )}
+                <div className="model-metric">
+                  <strong>Latency:</strong> {model.latency}
+                </div>
+              </div>
+            ))}
+          </div>
+          <div className="forecast-period">
+            <Calendar size={32} color="#3b82f6" />
+            <div>
+              <h3>FORECAST PERIOD</h3>
+              <div className="period-value">90 composites</div>
+              <div className="period-label">~3 years | Multi-sensor fusion</div>
             </div>
           </div>
+        </div>
 
+        {/* Summary Cards */}
+        <div className="prediction-summary">
           <div className="summary-card">
             <div className="summary-icon">
               <TrendingUp size={32} />
             </div>
             <div className="summary-content">
-              <h3>NDVI Trend</h3>
-              <p className="summary-value">{trend}</p>
-              <span className="summary-label">Avg NDVI: {avgNDVI.toFixed(3)} (15m-250m fusion)</span>
+              <h3>NDVI TREND</h3>
+              <p className="summary-value" style={{ color: '#10b981' }}>{trend}</p>
+              <span className="summary-label">Avg NDVI: {avgPrediction.toFixed(3)} (15m-250m fusion)</span>
             </div>
           </div>
 
@@ -426,99 +237,97 @@ function Predictions() {
               <Brain size={32} />
             </div>
             <div className="summary-content">
-              <h3>Model Performance</h3>
-              <p className="summary-value">R² = {modelMetrics.forecastR2}</p>
+              <h3>MODEL PERFORMANCE</h3>
+              <p className="summary-value" style={{ color: '#3b82f6' }}>R² = 0.87</p>
               <span className="summary-label">Multi-Sensor ConvLSTM | 4 inputs</span>
             </div>
           </div>
         </div>
 
-        {predictions.length > 0 && (
-          <div className="chart-section">
-            <PredictionChart data={predictions} />
-          </div>
-        )}
-
+        {/* Main Prediction Chart */}
         <div className="chart-section">
+          <h3 className="chart-title">NDVI Predictions with Confidence Intervals</h3>
+          <p className="chart-subtitle">
+            Predicted NDVI from ConvLSTM model (16-day composites)<br/>
+            95% confidence interval based on model uncertainty
+          </p>
+          <PredictionChart data={predictions} />
+        </div>
+
+        {/* Model Comparison */}
+        <div className="chart-section">
+          <h3 className="chart-title">Comparison of ML Models</h3>
           <ModelComparison />
         </div>
 
-        {upcomingPredictions.length > 0 && (
-          <div className="predictions-table-section">
-            <h2 className="section-title-small">Next 6 Multi-Sensor Predictions (96 days)</h2>
-            <div className="predictions-table">
-              <table>
-                <thead>
-                  <tr>
-                    <th>Date</th>
-                    <th>NDVI Fused</th>
-                    <th>Confidence Interval</th>
-                    <th>Frost Risk</th>
-                    <th>SWIR Moisture</th>
-                    <th>Quality</th>
-                    <th>Confidence</th>
+        {/* Predictions Table */}
+        <div className="predictions-table-section">
+          <h2 className="section-title-small">Next 6 Multi-Sensor Predictions (96 days)</h2>
+          <div className="predictions-table">
+            <table>
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>NDVI Fused</th>
+                  <th>Confidence Interval</th>
+                  <th>Frost Risk</th>
+                  <th>SWIR Moisture</th>
+                  <th>Quality</th>
+                  <th>Confidence</th>
+                </tr>
+              </thead>
+              <tbody>
+                {nextPredictions.map((pred, idx) => (
+                  <tr key={idx}>
+                    <td>{pred.date}</td>
+                    <td><strong>{pred.ndvi.toFixed(3)}</strong></td>
+                    <td>{pred.confidence}</td>
+                    <td><span className={`risk-badge risk-${pred.frost}`}>{pred.frost}</span></td>
+                    <td>{pred.swir.toFixed(2)}</td>
+                    <td>{pred.quality}</td>
+                    <td><strong>{pred.conf}</strong></td>
                   </tr>
-                </thead>
-                <tbody>
-                  {upcomingPredictions.map((pred, idx) => (
-                    <tr key={idx}>
-                      <td>{pred.date}</td>
-                      <td className="ndvi-value">{pred.ndvi_pred.toFixed(3)}</td>
-                      <td>[{pred.ndvi_lower.toFixed(3)}, {pred.ndvi_upper.toFixed(3)}]</td>
-                      <td>
-                        <span className={`frost-badge frost-${pred.frost_risk}`}>
-                          {pred.frost_risk}
-                        </span>
-                      </td>
-                      <td>{pred.swir_moisture.toFixed(2)}</td>
-                      <td>
-                        <span className={`quality-badge quality-${pred.quality}`}>
-                          {pred.quality}
-                        </span>
-                      </td>
-                      <td>{(pred.confidence * 100).toFixed(1)}%</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                ))}
+              </tbody>
+            </table>
           </div>
-        )}
+        </div>
 
+        {/* Technical Info */}
         <div className="info-section">
           <div className="info-card">
             <h3>📊 Multi-Sensor Data Pipeline</h3>
-            <p>
-              <strong>MOD13Q1.061:</strong> 250m NDVI temporal baseline (2000-2025, 575 composites)<br/>
-              <strong>ASTER L1B VNIR:</strong> 15m high-resolution NDVI for individual parcels<br/>
-              <strong>MOD11A2:</strong> 1km LST for nighttime frost alerts<br/>
-              <strong>ASTER SWIR:</strong> 30m water stress detection<br/>
-              <strong>Fusion:</strong> Spatial downscaling + Temporal harmonization
-            </p>
+            <ul>
+              <li><strong>MOD13Q1.061:</strong> 250m NDVI temporal baseline (2000-2025, 575 composites)</li>
+              <li><strong>ASTER L1B VNIR:</strong> 15m high-resolution NDVI for individual parcels</li>
+              <li><strong>MOD11A2:</strong> 1km LST for nighttime frost alerts</li>
+              <li><strong>ASTER SWIR:</strong> 30m water stress detection</li>
+              <li><strong>Fusion:</strong> Spatial downscaling + Temporal harmonization</li>
+            </ul>
           </div>
 
           <div className="info-card">
             <h3>🔬 ML Multi-Input Methodology</h3>
             <ul>
-              <li><strong>Spatial Fusion:</strong> ASTER 15m → MOD13Q1 250m deep learning downscaling</li>
-              <li><strong>Gap Filling:</strong> U-Net with pixel_reliability + VI_Quality masks</li>
-              <li><strong>Multi-Input Forecasting:</strong> ConvLSTM with NDVI + LST + SWIR + temporal features</li>
-              <li><strong>Resolution Harmonization:</strong> Cubic convolution resampling (ASTER L1B)</li>
-              <li><strong>Quality Weighting:</strong> Sensors weighted by temporal reliability</li>
-              <li><strong>Validation:</strong> Multi-resolution cross-validation R² = {modelMetrics.multiSensorCorrelation}</li>
+              <li>▹ Spatial Fusion: ASTER 15m → MOD13Q1 250m deep learning downscaling</li>
+              <li>▹ Gap Filling: U-Net with pixel_reliability + VI_Quality masks</li>
+              <li>▹ Multi-Input Forecasting: ConvLSTM with NDVI + LST + SWIR + temporal features</li>
+              <li>▹ Resolution Harmonization: Cubic convolution resampling (ASTER L1B)</li>
+              <li>▹ Quality Weighting: Sensors weighted by temporal reliability</li>
+              <li>▹ Validation: Multi-resolution cross-validation R² = 0.93</li>
             </ul>
           </div>
 
           <div className="info-card">
             <h3>⚠️ Multi-Sensor Considerations</h3>
-            <p>
-              <strong>ASTER Availability:</strong> On-demand, lower temporal frequency than MODIS<br/>
-              <strong>Resolution Trade-off:</strong> 15m detail vs 250m temporal continuity<br/>
-              <strong>Cloud Coverage:</strong> VNIR/SWIR affected, TIR partially penetrates clouds<br/>
-              <strong>Fusion Uncertainty:</strong> Confidence intervals include downscaling error<br/>
-              <strong>Computational Cost:</strong> ~{(modelMetrics.latency.gapFilling + modelMetrics.latency.spatialFusion + modelMetrics.latency.forecast).toFixed(1)}s total (3 models)<br/>
-              <strong>Calibration:</strong> ASTER L1B radiometric + geometric (UTM) applied
-            </p>
+            <ul>
+              <li><strong>ASTER Availability:</strong> On-demand, lower temporal frequency than MODIS</li>
+              <li><strong>Resolution Trade-off:</strong> 15m detail vs 250m temporal continuity</li>
+              <li><strong>Cloud Coverage:</strong> VNIR/SWIR affected, TIR partially penetrates clouds</li>
+              <li><strong>Fusion Uncertainty:</strong> Confidence intervals include downscaling error</li>
+              <li><strong>Computational Cost:</strong> ~26.0s total (3 models)</li>
+              <li><strong>Calibration:</strong> ASTER L1B radiometric + geometric (UTM) applied</li>
+            </ul>
           </div>
         </div>
       </div>
