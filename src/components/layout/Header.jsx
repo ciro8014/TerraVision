@@ -19,6 +19,7 @@ function Header() {
     { to: '/', label: 'Home' },
     { to: '/dashboard', label: 'Dashboard' },
     { to: '/predictions', label: 'Predictions' },
+    { to: '/map', label: 'Map' }, // ← Nombre más corto
     { to: '/sensors', label: 'Terra Sensors' },
     { to: '/impact', label: 'Impact' },
     { to: '/data', label: 'Data' },
@@ -37,8 +38,8 @@ function Header() {
 
         <div className="nav-desktop">
           {navLinks.map((link) => (
-            <Link 
-              key={link.to} 
+            <Link
+              key={link.to}
               to={link.to}
               className={location.pathname === link.to ? 'nav-link-active' : ''}
             >

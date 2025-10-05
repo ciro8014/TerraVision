@@ -1,0 +1,10 @@
+{
+  "name": "ASTER L1B SWIR - Water Stress",
+  "resolution": "30m",
+  "temporal": "On-demand",
+  "mainLayer": "ASTER_SWIR",
+  "scale": null,
+  "qaLayers": null,
+  "role": "Water stress detection",
+  "weight": "10%"
+}

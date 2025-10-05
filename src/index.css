@@ -3320,3 +3320,98 @@ footer::before {
     align-items: flex-start;
   }
 }
+/* Estilos para el mapa interactivo */
+.leaflet-container {
+  width: 100%;
+  height: 100%;
+  font-family: inherit;
+}
+
+/* Mejorar popups */
+.leaflet-popup-content-wrapper {
+  border-radius: 12px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+}
+
+.leaflet-popup-content {
+  margin: 0;
+  font-family: inherit;
+}
+
+.leaflet-popup-tip {
+  box-shadow: 0 3px 14px rgba(0, 0, 0, 0.1);
+}
+
+/* Controles del mapa */
+.leaflet-control-zoom {
+  border: none !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+}
+
+.leaflet-control-zoom a {
+  border-radius: 8px !important;
+  font-size: 18px !important;
+  width: 36px !important;
+  height: 36px !important;
+  line-height: 36px !important;
+}
+
+.leaflet-control-zoom a:first-child {
+  border-top-left-radius: 8px !important;
+  border-top-right-radius: 8px !important;
+}
+
+.leaflet-control-zoom a:last-child {
+  border-bottom-left-radius: 8px !important;
+  border-bottom-right-radius: 8px !important;
+}
+
+/* Animación de marcadores */
+.leaflet-marker-icon {
+  transition: transform 0.2s ease;
+}
+
+.leaflet-marker-icon:hover {
+  transform: scale(1.1);
+}
+
+/* Scrollbar personalizado para el sidebar */
+.overflow-y-auto::-webkit-scrollbar {
+  width: 6px;
+}
+
+.overflow-y-auto::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 10px;
+}
+
+.overflow-y-auto::-webkit-scrollbar-thumb {
+  background: #10b981;
+  border-radius: 10px;
+}
+
+.overflow-y-auto::-webkit-scrollbar-thumb:hover {
+  background: #059669;
+}
+
+/* Animación para el botón de colapsar */
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Asegurar que el mapa ocupe todo el espacio */
+#root {
+  height: 100vh;
+}
+
+/* Fix para el layout del mapa */
+.flex.h-screen {
+  height: calc(100vh - 80px); /* Ajusta según la altura de tu header */
+}

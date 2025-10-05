@@ -8,13 +8,14 @@ import Sensors from './pages/Sensors';
 import Impact from './pages/Impact';
 import Data from './pages/Data';
 import Solutions from './pages/Solutions';
+import InteractiveMap from './pages/InteractiveMap';
 
 function App() {
   return (
     <Router>
-      <div>
+      <div className="flex flex-col min-h-screen">
         <Header />
-        <main>
+        <main className="flex-1">
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/dashboard" element={<Dashboard />} />
@@ -23,6 +24,7 @@ function App() {
             <Route path="/impact" element={<Impact />} />
             <Route path="/solutions" element={<Solutions />} />
             <Route path="/data" element={<Data />} />
+            <Route path="/map" element={<InteractiveMap />} />
           </Routes>
         </main>
         <Footer />

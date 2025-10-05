@@ -1,0 +1,10 @@
+{
+  "name": "ASTER L1B VNIR - Individual Parcels",
+  "resolution": "15m",
+  "temporal": "On-demand",
+  "mainLayer": "ASTER_VNIR",
+  "scale": null,
+  "qaLayers": null,
+  "role": "Individual parcels + High-resolution NDVI",
+  "weight": "15%"
+}
